@@ -34,6 +34,6 @@ class m000000_000200_create_alternate_names_table extends \yii\db\Migration {
             ]
         );
 
-        $this->createIndex('geonameid', 'alternate_name', ['geonameid']);
+        $this->createIndex('altername_name|geonameid', 'alternate_name', ['geonameid']);
     }
 }

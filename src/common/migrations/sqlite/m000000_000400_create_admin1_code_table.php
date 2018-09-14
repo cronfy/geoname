@@ -14,7 +14,7 @@ class m000000_000400_create_admin1_code_table extends \yii\db\Migration {
             ]
         );
 
-        $this->createIndex('code', 'admin1_code', ['code']);
+        $this->createIndex('admin1_code|code', 'admin1_code', ['code']);
     }
 
     public function down()

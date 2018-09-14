@@ -50,6 +50,6 @@ class m000000_000100_create_geoname_table extends \yii\db\Migration {
             ]
         );
 
-        $this->createIndex('geonameid', 'geoname', ['geonameid']);
+        $this->createIndex('geoname|geonameid', 'geoname', ['geonameid']);
     }
 }

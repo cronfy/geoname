@@ -17,6 +17,6 @@ class m000000_000300_create_hierarchy_table extends \yii\db\Migration {
             ]
         );
 
-        $this->createIndex('childId', 'hierarchy', ['childId']);
+        $this->createIndex('hierarchy|childId', 'hierarchy', ['childId']);
     }
 }
