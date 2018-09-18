@@ -13,6 +13,7 @@ use cronfy\geoname\common\models\GeonameAlternateNameItem;
 use Yii;
 use yii\console\Controller;
 use cronfy\geoname\common\models\Geoname;
+use yii\db\ActiveQuery;
 
 /**
  * @property BaseModule $module
@@ -63,8 +64,18 @@ class ImportController extends Controller
             ->population(15000)
         ;
 
+        return $this->iterateWithOfficialNames($query);
+    }
+
+    protected function iterateWithOfficialNames(ActiveQuery $query, callable $filter = null) {
+        $service = $this->getGeonamesService();
+
         foreach ($query->batch(100) as $batch) {
             foreach ($batch as $geoname) {
+                if ($filter && !$filter($geoname)) {
+                    continue;
+                }
+
                 /** @var \cronfy\geoname\common\models\sqlite\Geoname $geoname */
                 if (!$officialName = $service->getOfficialNameByGeoname($geoname, 'ru')) {
                     // не удалось определить официальное название пункта - пропускаем
@@ -82,9 +93,16 @@ class ImportController extends Controller
         }
     }
 
-    protected function iterateGeonamesCities($countryCode)
-    {
-        foreach ($this->iterateGeonamesCitiesWithOfficialNames($countryCode) as $data) {
+    /**
+     * @param array[] $iterator
+     * [
+     *  'geonameItem' => \cronfy\geoname\common\models\sqlite\Geoname,
+     *  'officialNames' => ['ru' => '...', ...]
+     * ]
+     * @throws \yii\db\Exception
+     */
+    public function loadGeonames($iterator) {
+        foreach ($iterator as $data) {
             /** @var \cronfy\geoname\common\models\sqlite\Geoname $geoname */
 
             $geoname = $data['geonameItem'];
@@ -195,5 +213,10 @@ class ImportController extends Controller
         }
 
         echo "\nFinished.\n";
+    }
+
+    protected function iterateGeonamesCities($countryCode)
+    {
+        $this->loadGeonames($this->iterateGeonamesCitiesWithOfficialNames($countryCode));
     }
 }
