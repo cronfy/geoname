@@ -15,10 +15,12 @@ use cronfy\geoname\common\misc\CachedRemoteFile;
 use cronfy\geoname\common\misc\CachedZipFile;
 use cronfy\geoname\common\misc\CountryGeonamesCsvRepository;
 use cronfy\geoname\common\misc\HierarchyCsvRepository;
+use cronfy\geoname\common\misc\PostalCodesCsvRepository;
 use cronfy\geoname\common\models\sqlite\Admin1Code;
 use cronfy\geoname\common\models\sqlite\AlternateName;
 use cronfy\geoname\common\models\sqlite\Geoname;
 use cronfy\geoname\common\models\sqlite\Hierarchy;
+use cronfy\geoname\common\models\sqlite\PostalCode;
 use yii\console\Controller;
 
 /**
@@ -148,6 +150,68 @@ class InitController extends Controller
         if ($items) {
             $command = $db->createCommand();
             $command->batchInsert(AlternateName::tableName(), array_keys($item), $items);
+            $command->execute();
+        }
+
+        $this->stdout("\nDone\n");
+    }
+
+    public function actionPostalCodes($country, $force = null) {
+        $service = $this->module->getGeonamesService();
+        $countryCode = $service->getCountryCodeByAlias($country);
+
+        $dataCacheDir = $this->module->cacheDir;
+
+        $cachedRemoteFile = new CachedRemoteFile();
+        $cachedRemoteFile->srcUrl = "http://download.geonames.org/export/zip/" . $countryCode . ".zip";
+        $cachedRemoteFile->destFilePath = $dataCacheDir . '/' . $countryCode . '-postalCodes.zip';
+
+        $cachedZipFile = new CachedZipFile();
+        $cachedZipFile->sourceZip = $cachedRemoteFile;
+        $cachedZipFile->archiveItemFileName = "{$countryCode}.txt";
+        $cachedZipFile->destFilePath = $dataCacheDir . '/' . $countryCode . '-postalCodes.txt';
+
+        $csvRepository = new PostalCodesCsvRepository();
+        $csvRepository->sourceFile = $cachedZipFile;
+
+        $db = $this->module->getSqliteDatabase();
+
+        if (PostalCode::find()->andWhere(['country_code' => $countryCode])->exists($db)) {
+            if ($force !== 'force') {
+                throw new \Exception("Data already exist. To remote it run me with 'force' second argiment");
+            }
+
+            $this->stdout("Removing old data...\n");
+            $command = $db->createCommand(); $params = [];
+            $command->delete(PostalCode::tableName(), ['country_code' => $countryCode], $params);
+            $command->execute();
+        }
+
+        $this->stdout("Loading data ");
+        $count = 0;
+        $items = [];
+        foreach ($csvRepository->iterate() as $item) {
+            $items[] = $item;
+
+            $count++;
+            // max is 500
+            // otherwise we get error (is this an sqlite bug/feature?):
+            // General error: 1 too many terms in compound SELECT
+            if ($count >= 500) {
+                $command = $db->createCommand();
+                $command->batchInsert(PostalCode::tableName(), array_keys($item), $items);
+                $command->execute();
+
+                $count = 0;
+                $items = [];
+                echo ".";
+            }
+
+        }
+
+        if ($items) {
+            $command = $db->createCommand();
+            $command->batchInsert(PostalCode::tableName(), array_keys($item), $items);
             $command->execute();
         }
 

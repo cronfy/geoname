@@ -13,7 +13,6 @@ use cronfy\geoname\common\models\GeonameDTO;
 use cronfy\geoname\common\models\sqlite\AlternateName;
 use cronfy\geoname\common\models\sqlite\Geoname;
 use cronfy\geoname\common\models\sqlite\Hierarchy;
-use Yii;
 use yii\db\Exception;
 use yii\helpers\ArrayHelper;
 
@@ -72,6 +71,18 @@ class GeonameService
         }
 
         return $this->_admin1CodesRepository;
+    }
+
+    protected $_postalCodesCodesRepository;
+    public function getPostalCodesRepository() {
+        if (!$this->_postalCodesCodesRepository) {
+            $repository = new PostalCodesSqliteRepository();
+            $repository->db = $this->module->getSqliteDatabase();
+
+            $this->_postalCodesCodesRepository = $repository;
+        }
+
+        return $this->_postalCodesCodesRepository;
     }
 
 
@@ -290,64 +301,4 @@ class GeonameService
         return $dto;
     }
 
-
-
-
-
-    private function getAlternateNamesByGeonameIdCacheKey($countryCode, $geonameId) {
-        return 'lvendor.cronfy.geoname.service.altnames.geoname.' . $countryCode . '.' . $geonameId;
-    }
-
-    protected function getCachedAlternateNamesByGeonameId($countryCode, $geonameId) {
-        $cacheKey = $this->getAlternateNamesByGeonameIdCacheKey($countryCode, $geonameId);
-        return Yii::$app->cache->get($cacheKey);
-    }
-
-    protected function setCachedAlternateNamesByGeonameId($countryCode, $geonameId, $value) {
-        $cacheKey = $this->getAlternateNamesByGeonameIdCacheKey($countryCode, $geonameId);
-        return Yii::$app->cache->set($cacheKey, $value, 60 * 60 * 24 * 30);
-    }
-
-    public function getAlternateNamesByGeonameIds($countryCode, $geonameIds, $filters = []) {
-        $result = [];
-
-        $alternateNames = [];
-        foreach ($geonameIds as $index => $geonameId) {
-            $cached = $this->getCachedAlternateNamesByGeonameId($countryCode, $geonameId);
-            if ($cached !== false) {
-                $alternateNames = array_merge($alternateNames, $cached);
-                unset($geonameIds[$index]);
-            }
-        }
-
-        if ($geonameIds) {
-            $forCache = [];
-            foreach ($this->iterateCountryAlternateNamesItems($countryCode) as $alternateNamesItem) {
-                if (!in_array($alternateNamesItem->geonameid, $geonameIds)) {
-                    continue;
-                }
-
-                $forCache[$alternateNamesItem->geonameid][] = $alternateNamesItem;
-            }
-
-            foreach ($geonameIds as $geonameId) {
-                // может, и нет alternateNames для этого geonameid, отсутствие тоже надо закешировать
-                $items = @$forCache[$geonameId] ?: [];
-                $this->setCachedAlternateNamesByGeonameId($countryCode, $geonameId, $items);
-                $alternateNames = array_merge($alternateNames, $items);
-            }
-        }
-
-        foreach ($alternateNames as $alternateNamesItem) {
-            foreach ($filters as $filter) {
-                if (!$filter($alternateNamesItem)) {
-                    continue 2;
-                }
-            }
-
-            $result[$alternateNamesItem->geonameid][] = $alternateNamesItem;
-        }
-
-        return $result;
-    }
 }

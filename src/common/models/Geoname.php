@@ -5,9 +5,11 @@ namespace cronfy\geoname\common\models;
 use cronfy\experience\yii2\ensureSave\EnsureSaveTrait;
 use paulzi\jsonBehavior\JsonBehavior;
 use paulzi\jsonBehavior\JsonField;
-use Yii;
 
 /**
+ * @deprecated do not use it at all. It's project specific how to store
+ * geonames data. Use this module for import only.
+ *
  * This is the model class for table "geoname".
  *
  * @property integer $id

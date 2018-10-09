@@ -53,6 +53,7 @@ class ImportController extends Controller
 
     }
 
+    /** @deprecated  */
     protected function iterateGeonamesCitiesWithOfficialNames($countryCode) {
         $service = $this->getGeonamesService();
 

@@ -91,6 +91,7 @@ class BaseModule extends \yii\base\Module
             \cronfy\geoname\common\models\sqlite\AlternateName::$db = $db;
             \cronfy\geoname\common\models\sqlite\Admin1Code::$db = $db;
             \cronfy\geoname\common\models\sqlite\Hierarchy::$db = $db;
+            \cronfy\geoname\common\models\sqlite\PostalCode::$db = $db;
         }
 
         return $this->_db;

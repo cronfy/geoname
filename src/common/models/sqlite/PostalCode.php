@@ -9,17 +9,14 @@
 namespace cronfy\geoname\common\models\sqlite;
 
 
-use cronfy\geoname\common\models\GeonameDTO;
 use Yii;
 use yii\db\ActiveRecord;
 
 /**
- * @property integer $geonameid
  * @property float $latitude
  * @property float $longitude
- * @property string $name
  */
-class Geoname extends ActiveRecord
+class PostalCode extends ActiveRecord
 {
     public static $db;
 
@@ -29,19 +26,11 @@ class Geoname extends ActiveRecord
     }
 
     /**
-     * @return GeonameQuery
+     * @return AlternateNameQuery
      * @throws \yii\base\InvalidConfigException
      */
     public static function find()
     {
-        return Yii::createObject(GeonameQuery::class, [get_called_class()]);
-    }
-
-    public function getDto() {
-        $dto = new GeonameDTO();
-        foreach (get_object_vars($dto) as $key => $value) {
-            $dto->$key = $this->$key;
-        }
-        return $dto;
+        return Yii::createObject(PostalCodeQuery::class, [get_called_class()]);
     }
 }
