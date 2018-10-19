@@ -9,8 +9,8 @@
 namespace cronfy\geoname\common\misc;
 
 
+use cronfy\geoname\common\models\GeonameDTO;
 use cronfy\geoname\common\models\sqlite\Admin1Code;
-use cronfy\geoname\common\models\sqlite\Geoname;
 
 class Admin1CodesSqliteRepository
 {
@@ -24,7 +24,7 @@ class Admin1CodesSqliteRepository
 
     protected $_byCode = [];
     /**
-     * @param $geoname Geoname
+     * @param $geoname GeonameDTO
      * @return Admin1Code
      */
     public function getByGeoname($geoname) {
