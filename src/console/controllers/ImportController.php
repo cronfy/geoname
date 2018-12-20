@@ -95,7 +95,7 @@ class ImportController extends Controller
     }
 
     /**
-     * @param array[] $iterator
+     * @param array[]|\Generator $iterator
      * [
      *  'geonameItem' => \cronfy\geoname\common\models\sqlite\Geoname,
      *  'officialNames' => ['ru' => '...', ...]
