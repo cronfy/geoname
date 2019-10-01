@@ -63,6 +63,7 @@ class ImportController extends Controller
             ->country($countryCode)
             ->populatedLocations()
             ->population(15000)
+//            ->orWhere(['geonameid' => 555624])
         ;
 
         return $this->iterateWithOfficialNames($query);
